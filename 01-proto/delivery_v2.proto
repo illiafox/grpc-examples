@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package delivery.v2;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "examples/gen/go/proto;deliverypb";
+
+service DeliveryService {
+  rpc GetPackageInfo(GetPackageInfoRequest) returns (GetPackageInfoResponse) {
+    option (google.api.http) = {
+      get: "/v1/package/{id}"
+    };
+  }
+  rpc GetNewPackages(GetPackageInfoRequest) returns (stream Package);
+  rpc AddPackages(stream Package) returns (AddPackageResponse);
+  rpc GetPackages(stream GetPackageInfoRequest) returns (stream GetPackageInfoResponse);
+}
+
+message AddPackageResponse {
+  int32 added_count = 1;
+}
+
+message GetPackageInfoRequest {
+  int32 id = 1 [(buf.validate.field).int32.gt = 0];
+}
+
+message GetPackageInfoResponse {
+  Package package = 1;
+}
+
+message Package {
+  int32 id = 1;
+  string description = 2;
+  float weight_kg = 3;
+  optional string fragile_note = 4;
+  google.protobuf.Duration estimated_delivery_duration = 5;
+}
+
+message Person {
+  reserved 1; // removed 'id' field
+  string name = 2;
+  string address = 3;
+
+  oneof contact_method {
+    string telegram_handle = 4;
+    string whatsapp_number = 5;
+  }
+
+  google.protobuf.Timestamp created_at = 10;
+  repeated Package packages = 11;
+
+  map<string, string> metadata = 12;
+}
